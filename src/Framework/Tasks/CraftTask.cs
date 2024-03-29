@@ -48,7 +48,7 @@ namespace DeluxeJournal.Framework.Tasks
         public CraftTask(string name, SObject item, int count) : base(TaskTypes.Craft, name)
         {
             TargetName = item.DisplayName;
-            TargetIndex = item.ParentSheetIndex;
+            TargetIndex = item.QualifiedItemId;
             Variant = item.bigCraftable.Value ? 1 : 0;
             MaxCount = count;
         }
@@ -75,7 +75,7 @@ namespace DeluxeJournal.Framework.Tasks
 
         private void OnItemCrafted(object? sender, ItemReceivedEventArgs e)
         {
-            if (CanUpdate() && IsTaskOwner(e.Player) && IsBigCraftable() == e.Item.bigCraftable.Value && TargetIndex == e.Item.ParentSheetIndex)
+            if (CanUpdate() && IsTaskOwner(e.Player) && IsBigCraftable() == e.Item.bigCraftable.Value && e.Item.QualifiedItemId.Equals(TargetIndex))
             {
                 IncrementCount(e.Count);
             }

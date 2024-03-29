@@ -5,6 +5,11 @@ using StardewValley.Tools;
 using DeluxeJournal.Events;
 using DeluxeJournal.Tasks;
 using DeluxeJournal.Util;
+using StardewValley.Internal;
+using StardewValley.GameData.Tools;
+using StardewValley.TokenizableStrings;
+using StardewValley.GameData.Shops;
+using StardewValley.Extensions;
 
 namespace DeluxeJournal.Framework.Tasks
 {
@@ -24,11 +29,11 @@ namespace DeluxeJournal.Framework.Tasks
 
                 set
                 {
-                    if (value is Tool tool && (tool is Axe || tool is Hoe || tool is WateringCan || tool is Pickaxe))
+                     if (value is Tool tool && (tool is Axe || tool is Hoe || tool is WateringCan || tool is Pickaxe || tool is Pan))
                     {
-                        int localUpgradeLevel = ToolHelper.GetToolUpgradeLevelForPlayer(tool.BaseName, Game1.player);
-                        tool.UpgradeLevel = (localUpgradeLevel < Tool.iridium) ? localUpgradeLevel + 1 : 0;
-                        _item = tool;
+                        byte upgradeLevel = (byte)Math.Min(Tool.iridium, ToolHelper.GetToolUpgradeLevelForPlayer(tool.BaseName, Game1.player) + 1);
+                        _item = ToolHelper.GetToolFromDescription(tool.ItemId, upgradeLevel);
+                        
                     }
                     else
                     {

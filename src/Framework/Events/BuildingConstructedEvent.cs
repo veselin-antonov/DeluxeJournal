@@ -4,6 +4,7 @@ using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Locations;
 using DeluxeJournal.Events;
+using StardewModdingAPI.Framework.ModLoading.Rewriters.StardewValley_1_6;
 
 namespace DeluxeJournal.Framework.Events
 {
@@ -42,11 +43,12 @@ namespace DeluxeJournal.Framework.Events
 
         protected override BuildingConstructedEventArgs MessageToEventArgs(EventMessage message)
         {
-            Vector2 tile = new Vector2(message.TileX, message.TileY);
+            Vector2 tile = new (message.TileX, message.TileY);
+            GameLocation location = Game1.getLocationFromName(message.LocationName);
 
-            if (Game1.getLocationFromName(message.LocationName) is not BuildableGameLocation location)
+            if (!location.IsBuildableLocation())
             {
-                throw new ArgumentException(string.Format("No BuildableGameLocation with name '{0}'.", message.LocationName));
+                throw new ArgumentException(string.Format("You cannot build in location with name '{0}'.", message.LocationName));
             }
             
             if (location.getBuildingAt(tile) is not Building building)

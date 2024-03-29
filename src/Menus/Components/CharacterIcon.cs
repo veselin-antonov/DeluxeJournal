@@ -1,66 +1,50 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using StardewValley;
 
 namespace DeluxeJournal.Menus.Components
 {
     public class CharacterIcon
+
     {
-        public const int IconSize = 9;
 
-        private const int RowLength = IconSize * 14;
-
-        private static readonly Dictionary<string, int> Characters = new Dictionary<string, int>()
+        public static void DrawIcon(SpriteBatch b, NPC npc, Rectangle destination)
         {
-            { "?", 0 },
-            { "abigail", 1 },
-            { "penny", 2 },
-            { "maru", 3 },
-            { "leah", 4 },
-            { "haley", 5 },
-            { "emily", 6 },
-            { "alex", 7 },
-            { "shane", 8 },
-            { "sebastian", 9 },
-            { "sam", 10 },
-            { "harvey", 11 },
-            { "elliott", 12 },
-            { "sandy", 13 },
-            { "marnie", 14 },
-            { "caroline", 15 },
-            { "robin", 16 },
-            { "pierre", 17 },
-            { "pam", 18 },
-            { "jodi", 19 },
-            { "lewis", 20 },
-            { "linus", 21 },
-            { "willy", 23 },
-            { "wizard", 24 },
-            { "jas", 26 },
-            { "vincent", 27 },
-            { "krobus", 28 },
-            { "dwarf", 29 },
-            { "gus", 30 },
-            { "george", 32 },
-            { "evelyn", 33 },
-            { "demetrius", 34 },
-            { "clint", 35 },
-            { "kent", 36 },
-            { "leo", 37 }
-        };
-
-        public static void DrawIcon(SpriteBatch b, string character, Rectangle destination)
-        {
-            DrawIcon(b, character, destination, Color.White);
+            DrawIcon(b, npc, destination, Color.White);
         }
 
-        public static void DrawIcon(SpriteBatch b, string character, Rectangle destination, Color color)
+        public static void DrawIcon(SpriteBatch b, NPC npc, Rectangle destination, Color color)
         {
-            int pixels = Characters.GetValueOrDefault(character.ToLowerInvariant()) * IconSize;
+            Texture2D texture;
+            try
+            {
+                texture = Game1.content.Load<Texture2D>(@"Characters\" + npc.getTextureName());
+            }
+            catch (Exception)
+            {
+                texture = npc.Sprite.Texture;
+            }
 
-            b.Draw(DeluxeJournalMod.CharacterIconsTexture,
-                destination,
-                new Rectangle(pixels % RowLength, (pixels / RowLength) * IconSize, IconSize, IconSize),
-                color);
+            IconInfo? info = null;
+
+            if (DeluxeJournalMod.CharacterIconOverrides != null && DeluxeJournalMod.CharacterIconOverrides.TryGetValue(npc.displayName, out var ovr))
+                info = ovr;
+
+            if (info == null)
+            {
+                DeluxeJournalMod.CharacterIconInfo?.TryGetValue(npc.Name, out info);
+            }
+
+            b.Draw(
+                texture,
+                destination, new Rectangle(
+                    info?.OffsetX ?? 0,
+                    info?.OffsetY ?? 0,
+                    info?.Width ?? 16,
+                    info?.Height ?? 16
+                ),
+                color
+            );
         }
     }
 }

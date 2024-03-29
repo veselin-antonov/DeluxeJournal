@@ -16,6 +16,7 @@ namespace DeluxeJournal.Tasks
             Never,
             Daily,
             Weekly,
+            BiWeekly,
             Monthly,
             Annually
         }
@@ -46,6 +47,9 @@ namespace DeluxeJournal.Tasks
         [JsonConverter(typeof(WorldDateConverter))]
         WorldDate RenewDate { get; set; }
 
+        /// <summary>True if this task has not still been renewed this week, false otherwize.</summary>
+        bool IsFirstWeeklyRenewal { get; set; }
+
         /// <summary>Generic value. Typically used for storing localized names.</summary>
         string TargetDisplayName { get; set; }
 
@@ -53,7 +57,7 @@ namespace DeluxeJournal.Tasks
         string TargetName { get; set; }
 
         /// <summary>Generic value.</summary>
-        int TargetIndex { get; set; }
+        string? TargetIndex { get; set; }
 
         /// <summary>Generic value. Typically used for storing a meta-type on another generic value.</summary>
         int Variant { get; set; }

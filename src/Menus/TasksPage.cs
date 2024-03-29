@@ -290,11 +290,12 @@ namespace DeluxeJournal.Menus
                             {
                                 task.Complete = !task.Complete;
                                 task.MarkAsViewed();
-                                Game1.playSoundPitched("tinyWhip", task.Complete ? 2000 : 1000);
+                                Game1.playSound("tinyWhip", task.Complete ? 2000 : 1000);
                             }
                             else
                             {
                                 task.Active = true;
+                                task.IsFirstWeeklyRenewal = true;
                                 Game1.playSound("newRecipe");
                             }
                         }

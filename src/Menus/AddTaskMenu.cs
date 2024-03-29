@@ -399,7 +399,7 @@ namespace DeluxeJournal.Menus
                 if (npc != null)
                 {
                     smartNPCIcon.draw(b);
-                    CharacterIcon.DrawIcon(b, npc.Name, new Rectangle(smartNPCIcon.bounds.X + 8, smartNPCIcon.bounds.Y + 8, 40, 40));
+                    CharacterIcon.DrawIcon(b, npc, new Rectangle(smartNPCIcon.bounds.X + 8, smartNPCIcon.bounds.Y + 8, 40, 40));
                 }
 
                 if (item != null)

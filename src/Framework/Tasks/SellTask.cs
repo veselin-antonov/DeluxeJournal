@@ -43,7 +43,7 @@ namespace DeluxeJournal.Framework.Tasks
         public SellTask(string name, Item item, int count) : base(TaskTypes.Sell, name)
         {
             TargetDisplayName = item.DisplayName;
-            TargetIndex = item.ParentSheetIndex;
+            TargetIndex = item.QualifiedItemId;
             MaxCount = count;
 
             if (item is SObject obj)
@@ -78,7 +78,7 @@ namespace DeluxeJournal.Framework.Tasks
 
         private void OnSalableSold(object? sender, SalableSoldEventArgs e)
         {
-            if (CanUpdate() && IsTaskOwner(e.Player) && e.Salable is Item item && TargetIndex == item.ParentSheetIndex)
+            if (CanUpdate() && IsTaskOwner(e.Player) && e.Salable is Item item && item.QualifiedItemId.Equals(TargetIndex))
             {
                 IncrementCount(item.Stack);
             }

@@ -50,6 +50,7 @@
 	"ui.tasks.options.renew.Never": "Never",
 	"ui.tasks.options.renew.Daily": "Daily",
 	"ui.tasks.options.renew.Weekly": "Weekly",
+	"ui.tasks.options.renew.BiWeekly": "Bi-Weekly",
 	"ui.tasks.options.renew.Monthly": "Monthly",
 	"ui.tasks.options.renew.Annually": "Annually",
 	"ui.tasks.options.type": "Task Type",
@@ -74,5 +75,7 @@
 	"weekdays.thursday": "Thursday",
 	"weekdays.friday": "Friday",
 	"weekdays.saturday": "Saturday",
-	"weekdays.sunday": "Sunday"
+	"weekdays.sunday": "Sunday",
+
+	"tool.pan": "Pan"
 }

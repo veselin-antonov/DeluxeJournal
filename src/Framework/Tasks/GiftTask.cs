@@ -28,13 +28,13 @@ namespace DeluxeJournal.Framework.Tasks
 
             public override void Initialize(ITask task, ITranslationHelper translation)
             {
-                NPC = new LocalizedObjects(translation).GetNPC(task.TargetName);
-                Item = (task.TargetIndex == -1) ? null : Utility.getItemFromStandardTextDescription("O " + task.TargetIndex + " 1", null);
+                NPC = new LocalizedObjects(translation).GetNPC(task.TargetDisplayName);
+                Item = ItemRegistry.Create(task.TargetIndex);
             }
 
             public override ITask? Create(string name)
             {
-                return NPC != null ? new GiftTask(name, NPC.Name, Item?.ParentSheetIndex ?? -1) : null;
+                return NPC != null ? new GiftTask(name, NPC.Name, NPC.displayName, Item?.QualifiedItemId) : null;
             }
         }
 
@@ -43,9 +43,10 @@ namespace DeluxeJournal.Framework.Tasks
         {
         }
 
-        public GiftTask(string name, string npcName, int itemIndex) : base(TaskTypes.Gift, name)
+        public GiftTask(string name, string npcName, string npcDisplayName, string? itemIndex) : base(TaskTypes.Gift, name)
         {
             TargetName = npcName;
+            TargetDisplayName = npcDisplayName;
             TargetIndex = itemIndex;
         }
 
@@ -61,7 +62,7 @@ namespace DeluxeJournal.Framework.Tasks
 
         private void OnItemGifted(object? sender, GiftEventArgs e)
         {
-            if (CanUpdate() && IsTaskOwner(e.Player) && TargetName == e.NPC.Name && (TargetIndex == -1 || TargetIndex == e.Item.ParentSheetIndex))
+            if (CanUpdate() && IsTaskOwner(e.Player) && TargetName == e.NPC.Name && (String.IsNullOrEmpty(TargetIndex) || e.Item.QualifiedItemId.Equals(TargetIndex)))
             {
                 MarkAsCompleted();
             }

@@ -60,7 +60,7 @@ namespace DeluxeJournal.Menus
             _nameTextBox.Text = task.Name;
             _renewPeriodDropDown.selectedOption = (int)_task.RenewPeriod;
             
-            if (_task.RenewPeriod == Period.Weekly)
+            if (_task.RenewPeriod == Period.Weekly || _task.RenewPeriod == Period.BiWeekly)
             {
                 _weekdaysDropDown.selectedOption = (_task.RenewDate.DayOfMonth - 1) % 7;
             }
@@ -254,7 +254,7 @@ namespace DeluxeJournal.Menus
             ITask task = _taskFactory?.Create(name) ?? new BasicTask(name);
 
             task.RenewPeriod = (Period)_renewPeriodDropDown.selectedOption;
-            task.RenewDate = new WorldDate(1, season, ((task.RenewPeriod == Period.Weekly) ? _weekdaysDropDown.selectedOption : _daysDropDown.selectedOption) + 1);
+            task.RenewDate = new WorldDate(1, season, ((task.RenewPeriod == Period.Weekly || task.RenewPeriod == Period.BiWeekly) ? _weekdaysDropDown.selectedOption : _daysDropDown.selectedOption) + 1);
 
             if (_task != null)
             {
@@ -266,6 +266,11 @@ namespace DeluxeJournal.Menus
                     task.Active = _task.Active;
                     task.Complete = _task.Complete;
                     task.Count = _task.Count;
+                    if (task.RenewPeriod == Period.BiWeekly)
+                    {
+                        task.IsFirstWeeklyRenewal = _task.IsFirstWeeklyRenewal;
+                    }
+
                     task.MarkAsViewed();
                     task.SetSortingIndex(_task.GetSortingIndex());
 
@@ -664,7 +669,7 @@ namespace DeluxeJournal.Menus
                         {
                             icon.draw(b);
                             CharacterIcon.DrawIcon(b,
-                                parameterTextBox.TaskParser.NPC?.Name ?? "?",
+                                parameterTextBox.TaskParser.NPC,
                                 new Rectangle(icon.bounds.X + 8, icon.bounds.Y + 8, 40, 40));
                         }
                     }
@@ -678,7 +683,7 @@ namespace DeluxeJournal.Menus
             cancelButton.draw(b);
             okButton.draw(b, CanApplyChanges() ? Color.White : Color.Gray * 0.8f, 0.88f);
 
-            weekdaysDropDownCC.visible = renewPeriod == Period.Weekly;
+            weekdaysDropDownCC.visible = renewPeriod == Period.Weekly || renewPeriod == Period.BiWeekly;
             seasonsDropDownCC.visible = renewPeriod == Period.Annually;
             daysDropDownCC.visible = renewPeriod == Period.Monthly || renewPeriod == Period.Annually;
             daysDropDownCC.bounds.X = (renewPeriod == Period.Annually ? _seasonsDropDown.bounds.Right : _renewPeriodDropDown.bounds.Right) + 8;

@@ -20,7 +20,7 @@ namespace DeluxeJournal.Framework.Serialization
         {
             writer.WriteStartObject();
             writer.WritePropertyName("Season");
-            writer.WriteValue(value?.Season ?? "spring");
+            writer.WriteValue(value?.Season.ToString().ToLower() ?? "spring");
             writer.WritePropertyName("Day");
             writer.WriteValue(value?.DayOfMonth ?? 1);
             writer.WritePropertyName("Year");

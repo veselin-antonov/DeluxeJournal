@@ -31,7 +31,7 @@ namespace DeluxeJournal.Tasks
 
         public virtual string TargetName { get; set; }
 
-        public virtual int TargetIndex { get; set; }
+        public virtual string? TargetIndex { get; set; }
 
         public virtual int Variant { get; set; }
 
@@ -43,6 +43,8 @@ namespace DeluxeJournal.Tasks
 
         [JsonProperty(Order = -3)]
         public virtual bool Active { get; set; }
+
+        public virtual bool IsFirstWeeklyRenewal { get; set; }
 
         [JsonProperty(Order = -2)]
         public virtual bool Complete
@@ -80,9 +82,10 @@ namespace DeluxeJournal.Tasks
             OwnerUMID = Game1.player?.UniqueMultiplayerID ?? 0;
             RenewPeriod = Period.Never;
             RenewDate = new WorldDate(1, "spring", 1);
+            IsFirstWeeklyRenewal = true;
             TargetDisplayName = string.Empty;
             TargetName = string.Empty;
-            TargetIndex = -1;
+            TargetIndex = null;
             Variant = 0;
             Count = 0;
             MaxCount = 1;
@@ -145,6 +148,7 @@ namespace DeluxeJournal.Tasks
             return RenewPeriod switch
             {
                 Period.Weekly => (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,
+                Period.BiWeekly => IsFirstWeeklyRenewal ? 1 : (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,
                 Period.Monthly => (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 28) + 28) % 28,
                 Period.Annually => (((TotalDaysInYear(RenewDate) - TotalDaysInYear(Game1.Date)) % 112) + 112) % 112,
                 _ => 0,

@@ -1,5 +1,8 @@
 ﻿using StardewModdingAPI;
 using StardewValley;
+using StardewValley.GameData.Buildings;
+using StardewValley.GameData.Characters;
+using StardewValley.TokenizableStrings;
 using StardewValley.Tools;
 
 namespace DeluxeJournal.Util
@@ -9,15 +12,24 @@ namespace DeluxeJournal.Util
     {
         private readonly IDictionary<string, string> _items;
         private readonly IDictionary<string, string> _npcs;
-        private readonly IDictionary<string, ToolDescription> _tools;
+        private readonly IDictionary<string, string> _tools;
         private readonly IDictionary<string, BlueprintInfo> _blueprints;
 
         public LocalizedObjects(ITranslationHelper translation)
         {
-            _items = CreateItemMap(translation.LocaleEnum == LocalizedContentManager.LanguageCode.en);
+            _items = CreateItemMap();
             _npcs = CreateNPCMap();
-            _tools = CreateToolMap();
+            _tools = CreateToolMap(translation);
             _blueprints = CreateBlueprintMap();
+        }
+
+        public Tool? GetTool(string localizedName)
+        {
+            if (_tools.ContainsKey(localizedName))
+            {
+                return ItemRegistry.Create<Tool>(_tools[localizedName]);
+            }
+            return null;
         }
 
         /// <summary>Get an Item by display name.</summary>
@@ -25,15 +37,15 @@ namespace DeluxeJournal.Util
         /// <param name="fuzzy">Perform a fuzzy search if true, otherwise only return an Item with the exact name.</param>
         public Item? GetItem(string localizedName, bool fuzzy = false)
         {
-            localizedName = localizedName.Trim().ToLowerInvariant();
+            localizedName = localizedName.Trim().ToUpperInvariant();
 
             if (_tools.ContainsKey(localizedName))
             {
-                return ToolHelper.GetToolFromDescription(_tools[localizedName].index, _tools[localizedName].upgradeLevel);
+                return ItemRegistry.Create<Tool>(_tools[localizedName]);
             }
             else if (GetValue(_items, localizedName, fuzzy) is string item)
             {
-                return Utility.getItemFromStandardTextDescription(item, null);
+                return ItemRegistry.Create(item);
             }
 
             return null;
@@ -62,7 +74,7 @@ namespace DeluxeJournal.Util
 
         private static T? GetValue<T>(IDictionary<string, T> map, string key, bool fuzzy) where T : class
         {
-            key = key.Trim().ToLowerInvariant();
+            key = key.Trim().ToUpperInvariant();
             key = fuzzy ? Utility.fuzzySearch(key, map.Keys.ToList()) : key;
 
             if (key != null && map.ContainsKey(key))
@@ -73,92 +85,84 @@ namespace DeluxeJournal.Util
             return null;
         }
 
-        private static IDictionary<string, string> CreateItemMap(bool isLocaleEnglish)
+        private static IDictionary<string, string> CreateItemMap()
         {
-            IDictionary<int, string> furnitureData = Game1.content.Load<Dictionary<int, string>>("Data\\Furniture");
-            IDictionary<int, string> weaponData = Game1.content.Load<Dictionary<int, string>>("Data\\weapons");
-            IDictionary<int, string> bootsData = Game1.content.Load<Dictionary<int, string>>("Data\\Boots");
-            IDictionary<int, string> hatsData = Game1.content.Load<Dictionary<int, string>>("Data\\hats");
+            IDictionary<string, string> furnitureData = DataLoader.Furniture(Game1.content);
+            IDictionary<string, string> bootsData = DataLoader.Boots(Game1.content);
+            IDictionary<string, string> hatsData = DataLoader.Hats(Game1.content);
             IDictionary<string, string> map = new Dictionary<string, string>();
-            string text;
-            string[] values;
 
-            foreach (int key in Game1.objectInformation.Keys)
+            foreach (var (key, value) in Game1.objectData)
             {
-                if ((text = Game1.objectInformation[key]) != null)
-                {
-                    values = text.Split('/');
+                if (value != null)
+                    map[TokenParser.ParseText(text: value.DisplayName).ToUpperInvariant()] = key;
+            }
 
-                    if (values[0] != "Weeds" && (values[0] != "Stone" || key == SObject.stone))
-                    {
-                        map[values[4].ToLowerInvariant()] = (values[3] == "Ring" ? "R " : "O ") + key + " 1";
-                    }
+            foreach (var (key, value) in Game1.bigCraftableData)
+            {
+                if (value != null && CraftingRecipe.craftingRecipes.ContainsKey(key))
+                {
+                    map[TokenParser.ParseText(value.DisplayName).ToUpperInvariant()] = key;
                 }
             }
 
-            foreach (int key in Game1.bigCraftablesInformation.Keys)
+            foreach (var (key, value) in Game1.shirtData)
             {
-                if ((text = Game1.bigCraftablesInformation[key]) != null)
+                if (value != null)
                 {
-                    values = text.Split('/');
-
-                    if (CraftingRecipe.craftingRecipes.ContainsKey(values[0]))
-                    {
-                        map[values[isLocaleEnglish ? 0 : values.Length - 1].Trim().ToLowerInvariant()] = "BO " + key + " 1";
-                    }
+                    map[TokenParser.ParseText(value.DisplayName).ToUpperInvariant()] = key;
                 }
             }
 
-            foreach (int key in Game1.clothingInformation.Keys)
+            foreach (var (key, value) in Game1.pantsData)
             {
-                if ((text = Game1.clothingInformation[key]) != null)
+                if (value != null)
                 {
-                    map[text.Split('/')[isLocaleEnglish ? 0 : 1].ToLowerInvariant()] = "C " + key + " 1";
+                    map[TokenParser.ParseText(value.DisplayName).ToUpperInvariant()] = key;
                 }
             }
 
-            foreach (int key in furnitureData.Keys)
+            foreach (var (key, value) in furnitureData)
             {
-                if ((text = furnitureData[key]) != null)
+                if (value != null)
                 {
-                    values = text.Split('/');
-                    map[values[isLocaleEnglish ? 0 : values.Length - 1].Trim().ToLowerInvariant()] = "F " + key + " 1";
+                    string[] values = value.Split('/');
+                    map[values[0]] = "(F)" + key + " 1";
                 }
             }
 
-            foreach (int key in weaponData.Keys)
+            foreach (var (key, value) in Game1.weaponData)
             {
-                if ((text = weaponData[key]) != null)
+                if (value != null)
                 {
-                    values = text.Split('/');
-                    map[values[isLocaleEnglish ? 0 : values.Length - 1].Trim().ToLowerInvariant()] = "W " + key + " 1";
+                    map[TokenParser.ParseText(value.DisplayName).ToUpperInvariant()] = key;
                 }
             }
 
-            foreach (int key in bootsData.Keys)
+            foreach (var (key, value) in bootsData)
             {
-                if ((text = bootsData[key]) != null)
+                if (value != null)
                 {
-                    values = text.Split('/');
-                    map[values[isLocaleEnglish ? 0 : values.Length - 1].Trim().ToLowerInvariant()] = "B " + key + " 1";
+                    string[] values = value.Split('/');
+                    map[values[0]] = "(B)" + key + " 1";
                 }
             }
 
-            foreach (int key in hatsData.Keys)
+            foreach (var (key, value) in hatsData)
             {
-                if ((text = hatsData[key]) != null)
+                if (value != null)
                 {
-                    values = text.Split('/');
-                    map[values[isLocaleEnglish ? 0 : values.Length - 1].Trim().ToLowerInvariant()] = "H " + key + " 1";
+                    string[] values = value.Split('/');
+                    map[values[0]] = "(H)" + key + " 1";
                 }
             }
 
             return map;
         }
 
-        private static IDictionary<string, ToolDescription> CreateToolMap()
+        private static IDictionary<string, string> CreateToolMap(ITranslationHelper translation)
         {
-            IDictionary<string, ToolDescription> map = new Dictionary<string, ToolDescription>();
+            Dictionary<string, string> toolMap = new();
             Tool[] tools = {
                 new Axe(),
                 new Hoe(),
@@ -173,39 +177,23 @@ namespace DeluxeJournal.Util
 
             foreach (Tool tool in tools)
             {
-                int maxLevel = 0;
-
-                switch (tool.GetType().Name)
-                {
-                    case nameof(Axe):
-                    case nameof(Hoe):
-                    case nameof(Pickaxe):
-                    case nameof(WateringCan):
-                        maxLevel = Tool.iridium;
-                        break;
-                    case nameof(FishingRod):
-                        maxLevel = 3;
-                        break;
-                }
-
-                for (int level = 0; level <= maxLevel; level++)
-                {
-                    tool.UpgradeLevel = level;
-                    map[tool.DisplayName.ToLowerInvariant()] = ToolHelper.GetToolDescription(tool);
-                }
+                string toolName = tool.ItemId.Equals("Pan") ? 
+                    translation.Get("tool.pan").ToString().ToUpperInvariant()
+                    : tool.DisplayName.ToUpperInvariant();
+                toolMap[toolName] = tool.QualifiedItemId;
             }
 
-            return map;
+            return toolMap;
         }
 
         private static IDictionary<string, string> CreateNPCMap()
         {
-            IDictionary<string, string> npcData = Game1.content.Load<Dictionary<string, string>>("Data\\NPCDispositions");
+            IDictionary<string, CharacterData> npcData = Game1.characterData;
             IDictionary<string, string> map = new Dictionary<string, string>();
 
-            foreach (KeyValuePair<string, string> pair in npcData)
+            foreach (var (name, data) in npcData)
             {
-                map[pair.Value.Split('/')[11].ToLowerInvariant()] = pair.Key;
+                map[TokenParser.ParseText(data.DisplayName).ToUpperInvariant()] = name;
             }
 
             return map;
@@ -213,21 +201,12 @@ namespace DeluxeJournal.Util
 
         private static IDictionary<string, BlueprintInfo> CreateBlueprintMap()
         {
-            IDictionary<string, string> blueprintData = Game1.content.Load<Dictionary<string, string>>("Data\\Blueprints");
-            IDictionary<string, BlueprintInfo> map = new Dictionary<string, BlueprintInfo>();
+            IDictionary<string, BuildingData> buildingData = Game1.buildingData;
+            Dictionary<string, BlueprintInfo> map = new();
 
-            foreach (KeyValuePair<string, string> pair in blueprintData)
+            foreach (var (key, data) in buildingData)
             {
-                string[] fields = pair.Value.Split('/');
-
-                if (fields[0] == "animal")
-                {
-                    map[fields[4].ToLowerInvariant()] = new BlueprintInfo(pair.Key, fields[4], "Animal", int.Parse(fields[1]));
-                }
-                else if (fields.Length > 17)
-                {
-                    map[fields[8].ToLowerInvariant()] = new BlueprintInfo(pair.Key, fields[8], fields[10], int.Parse(fields[17]));
-                }
+                map[TokenParser.ParseText(data.Name).ToUpperInvariant()] = new BlueprintInfo(key, TokenParser.ParseText(data.Name), data.BuildingType, data.BuildCost);
             }
 
             return map;

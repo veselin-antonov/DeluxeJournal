@@ -85,15 +85,13 @@ namespace DeluxeJournal.Tasks
             string[] words = text.Trim().Split(' ');
             bool skip;
 
-            for (int group = Math.Min(words.Length, 3); group > 0; group--)
+            for (int group = Math.Min(words.Length, 5); group > 0; group--)
             {
                 for (int i = words.Length; i >= group; i--)
                 {
-                    string word = string.Join(" ", words[(i - group)..i]).ToLowerInvariant()
+                    string word = string.Join(" ", words[(i - group)..i]).ToUpperInvariant()
                         .Replace("(", "")
                         .Replace(")", "")
-                        .Replace("'", "")
-                        .Replace(".", "")
                         .Replace("!", "")
                         .Replace("?", "");
                     skip = false;
@@ -229,7 +227,7 @@ namespace DeluxeJournal.Tasks
 
                 if (keywordList.HasValue())
                 {
-                    foreach (string keyword in keywordList.ToString().Split(','))
+                    foreach (string keyword in keywordList.ToString().Split(',').Select(s => s.ToUpper()))
                     {
                         if (!keywords.ContainsKey(keyword))
                         {

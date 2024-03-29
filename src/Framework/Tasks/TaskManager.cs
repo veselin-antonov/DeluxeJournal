@@ -114,6 +114,11 @@ namespace DeluxeJournal.Framework.Tasks
 
                     if (!task.Active && task.DaysRemaining() <= 1)
                     {
+                        if (task.RenewPeriod == ITask.Period.BiWeekly)
+                        {
+                            task.IsFirstWeeklyRenewal = !task.IsFirstWeeklyRenewal;
+                        }
+
                         task.Active = true;
                     }
                 }

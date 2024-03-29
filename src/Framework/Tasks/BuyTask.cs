@@ -43,7 +43,7 @@ namespace DeluxeJournal.Framework.Tasks
         public BuyTask(string name, Item item, int count) : base(TaskTypes.Buy, name)
         {
             TargetDisplayName = item.DisplayName;
-            TargetIndex = item.ParentSheetIndex;
+            TargetIndex = item.QualifiedItemId;
             MaxCount = count;
             BasePrice = item.salePrice();
         }
@@ -65,7 +65,7 @@ namespace DeluxeJournal.Framework.Tasks
 
         private void OnSalablePurchased(object? sender, SalablePurchasedEventArgs e)
         {
-            if (CanUpdate() && IsTaskOwner(e.Player) && e.Salable is Item item && TargetIndex == item.ParentSheetIndex)
+            if (CanUpdate() && IsTaskOwner(e.Player) && e.Salable is Item item && item.QualifiedItemId.Equals(TargetIndex))
             {
                 IncrementCount(e.Amount);
             }

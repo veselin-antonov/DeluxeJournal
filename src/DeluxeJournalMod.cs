@@ -11,7 +11,11 @@ using DeluxeJournal.Framework.Data;
 using DeluxeJournal.Framework.Events;
 using DeluxeJournal.Framework.Tasks;
 using DeluxeJournal.Menus;
+using DeluxeJournal.Menus.Components;
 using DeluxeJournal.Patching;
+using Newtonsoft.Json.Linq;
+/*using SpaceCore.Events;*/
+using DeluxeJournal.Events;
 
 namespace DeluxeJournal
 {
@@ -27,7 +31,8 @@ namespace DeluxeJournal
 
         public static Texture2D? UiTexture { get; private set; }
 
-        public static Texture2D? CharacterIconsTexture { get; private set; }
+        public static Dictionary<string, IconInfo>? CharacterIconInfo;
+        public static Dictionary<string, IconInfo>? CharacterIconOverrides;
 
         public static bool IsMainScreen => !Context.IsSplitScreen || Context.ScreenId == 0;
 
@@ -47,8 +52,7 @@ namespace DeluxeJournal
 
             RuntimeHelpers.RunClassConstructor(typeof(TaskTypes).TypeHandle);
 
-            UiTexture = helper.Content.Load<Texture2D>("assets/ui.png");
-            CharacterIconsTexture = helper.Content.Load<Texture2D>("assets/character-icons.png");
+            UiTexture = helper.ModContent.Load<Texture2D>("assets/ui.png");
             Config = helper.ReadConfig<Config>();
             _notesData = helper.Data.ReadGlobalData<NotesData>(NOTES_DATA_KEY) ?? new NotesData();
 
@@ -63,13 +67,105 @@ namespace DeluxeJournal
             helper.Events.Display.MenuChanged += OnMenuChanged;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
+            helper.Events.Player.InventoryChanged += OnInventoryChanged;
+
+            /*SpaceEvents.BeforeGiftGiven += FarmerPatch.OnBouquetGiven;*/
 
             Patcher.Apply(new Harmony(ModManifest.UniqueID), Monitor,
                 new FarmerPatch(EventManager, Monitor),
-                new UtilityPatch(EventManager, Monitor),
                 new CarpenterMenuPatch(EventManager, Monitor),
                 new QuestLogPatch(Monitor)
             );
+
+            
+        }
+
+        private void LoadCharacterIcons()
+        {
+            const string path = "assets/character_icons.json";
+            Dictionary<string, IconInfo>? heads = null;
+
+            try
+            {
+                heads = Helper.Data.ReadJsonFile<Dictionary<string, IconInfo>>(path);
+                if (heads == null)
+                    Monitor.Log($"The {path} file is missing or invalid.", LogLevel.Error);
+            }
+            catch (Exception ex)
+            {
+                Monitor.Log($"The {path} file is invalid. Details: {ex}", LogLevel.Error);
+            }
+
+            heads ??= new();
+
+            // Read any extra data files
+            foreach (var cp in Helper.ContentPacks.GetOwned())
+            {
+                if (!cp.HasFile("heads.json"))
+                    continue;
+
+                Dictionary<string, IconInfo>? extra = null;
+                try
+                {
+                    extra = cp.ReadJsonFile<Dictionary<string, IconInfo>>("heads.json");
+                }
+                catch (Exception ex)
+                {
+                    Monitor.Log($"The heads.json file of {cp.Manifest.Name} is invalid. Details: {ex}", LogLevel.Error);
+                }
+
+                if (extra != null)
+                    foreach (var entry in extra)
+                        if (!string.IsNullOrEmpty(entry.Key))
+                            heads[entry.Key] = entry.Value;
+            }
+
+            // Now, read the data file used by NPC Map Locations. This is
+            // convenient because a lot of mods support it.
+            Dictionary<string, JObject>? content = null;
+
+            try
+            {
+                content = Helper.GameContent.Load<Dictionary<string, JObject>>("Mods/Bouhm.NPCMapLocations/NPCs");
+
+            }
+            catch (Exception)
+            {
+                /* Nothing~ */
+            }
+
+            if (content != null)
+            {
+                int count = 0;
+
+                foreach (var entry in content)
+                {
+                    if (heads.ContainsKey(entry.Key))
+                        continue;
+
+                    int offset;
+                    try
+                    {
+                        offset = entry.Value.Value<int>("MarkerCropOffset");
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
+
+                    heads[entry.Key] = new()
+                    {
+                        OffsetY = offset
+                    };
+                    count++;
+                }
+
+                Monitor.Log($"Loaded {count} character icon offsets from NPC Map Location data.", LogLevel.Debug);
+            }
+
+            CharacterIconInfo = heads;
+
+            CharacterIconOverrides = Config?.CharacterIconOverrides;
         }
 
         public override object GetApi()
@@ -79,7 +175,7 @@ namespace DeluxeJournal
 
         public string GetNotes()
         {
-            if (_notesData != null && _notesData.Text.ContainsKey(Constants.SaveFolderName))
+            if (_notesData != null && Constants.SaveFolderName != null && _notesData.Text.ContainsKey(Constants.SaveFolderName))
             {
                 return _notesData.Text[Constants.SaveFolderName];
             }
@@ -89,7 +185,7 @@ namespace DeluxeJournal
 
         public void SaveNotes(string text)
         {
-            if (_notesData != null)
+            if (_notesData != null && Constants.SaveFolderName != null)
             {
                 _notesData.Text[Constants.SaveFolderName] = text;
                 Helper.Data.WriteGlobalData(NOTES_DATA_KEY, _notesData);
@@ -119,6 +215,8 @@ namespace DeluxeJournal
             {
                 Game1.onScreenMenus.Add(new JournalButton(Helper.Translation));
             }
+
+            LoadCharacterIcons();
         }
 
         private void OnSaving(object? sender, SavingEventArgs e)
@@ -133,5 +231,20 @@ namespace DeluxeJournal
                 TaskManager?.Save();
             }
         }
+
+        private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
+        {
+            if (e.Added is SObject obj && !obj.HasBeenInInventory)
+            {
+                EventManager!.ItemCollected.Raise(null, new ItemReceivedEventArgs(e.Player, obj, obj.Stack));
+            }
+        }
+        /*private void OnBouquetGiven(object? sender, EventArgsBeforeReceiveObject args)
+        {
+            if (args.Gift.ParentSheetIndex == 458 && sender is Farmer farmer)
+            {
+                EventManager!.ItemGifted.Raise(farmer, new GiftEventArgs(farmer, args.Npc, args.Gift));
+            }
+        }*/
     }
 }

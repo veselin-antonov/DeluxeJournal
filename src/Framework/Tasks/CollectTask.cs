@@ -62,7 +62,7 @@ namespace DeluxeJournal.Framework.Tasks
         public CollectTask(string name, Item item, int count) : base(TaskTypes.Collect, name)
         {
             TargetDisplayName = item.DisplayName;
-            TargetIndex = item.ParentSheetIndex;
+            TargetIndex = item.QualifiedItemId;
             MaxCount = count;
         }
 
@@ -83,7 +83,7 @@ namespace DeluxeJournal.Framework.Tasks
 
         private void OnItemCollected(object? sender, ItemReceivedEventArgs e)
         {
-            if (CanUpdate() && IsTaskOwner(e.Player) && TargetIndex != -1 && TargetIndex == e.Item.ParentSheetIndex)
+            if (CanUpdate() && IsTaskOwner(e.Player) && e.Item.QualifiedItemId.Equals(TargetIndex))
             {
                 IncrementCount(e.Count);
             }
