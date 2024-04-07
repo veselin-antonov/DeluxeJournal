@@ -25,7 +25,7 @@ namespace DeluxeJournal.Framework.Tasks
 
             public override void Initialize(ITask task, ITranslationHelper translation)
             {
-                Item = new LocalizedObjects(translation).GetItem(task.TargetName);
+                Item = LocalizedObjects.Instance.GetItem(task.TargetName);
                 Count = task.MaxCount;
             }
 

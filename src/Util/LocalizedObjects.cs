@@ -10,12 +10,13 @@ namespace DeluxeJournal.Util
     /// <summary>Provides a means of querying game objects/data by their corresponding localized display names.</summary>
     public class LocalizedObjects
     {
+        private static LocalizedObjects? _instance;
         private readonly IDictionary<string, string> _items;
         private readonly IDictionary<string, string> _npcs;
         private readonly IDictionary<string, string> _tools;
         private readonly IDictionary<string, BlueprintInfo> _blueprints;
 
-        public LocalizedObjects(ITranslationHelper translation)
+        private LocalizedObjects(ITranslationHelper translation)
         {
             _items = CreateItemMap();
             _npcs = CreateNPCMap();
@@ -23,13 +24,33 @@ namespace DeluxeJournal.Util
             _blueprints = CreateBlueprintMap();
         }
 
-        public Tool? GetTool(string localizedName)
+        public static LocalizedObjects Instance
         {
-            if (_tools.ContainsKey(localizedName))
+            get
             {
-                return ItemRegistry.Create<Tool>(_tools[localizedName]);
+                if (_instance == null)
+                {
+                    throw new InvalidOperationException("LocalizedObjects class is not initialized with ITranslationHelper object. You must first call the LocalizedObjects.OneTimeInit() method.");
+                }
+                return _instance;
             }
-            return null;
+        }
+
+        public static bool IsInitialized()
+        {
+            return _instance != null;
+        }
+
+        public static void OneTimeInit(ITranslationHelper translation)
+        {
+            if (_instance == null)
+            {
+                _instance = new LocalizedObjects(translation);
+            }
+            else
+            {
+                throw new InvalidOperationException("LocalizedObjects is already initialized.");
+            }
         }
 
         /// <summary>Get an Item by display name.</summary>
@@ -37,11 +58,9 @@ namespace DeluxeJournal.Util
         /// <param name="fuzzy">Perform a fuzzy search if true, otherwise only return an Item with the exact name.</param>
         public Item? GetItem(string localizedName, bool fuzzy = false)
         {
-            localizedName = localizedName.Trim().ToUpperInvariant();
-
-            if (_tools.ContainsKey(localizedName))
+            if (GetValue(_tools, localizedName, fuzzy) is string tool)
             {
-                return ItemRegistry.Create<Tool>(_tools[localizedName]);
+                return ItemRegistry.Create(tool);
             }
             else if (GetValue(_items, localizedName, fuzzy) is string item)
             {
@@ -163,24 +182,19 @@ namespace DeluxeJournal.Util
         private static IDictionary<string, string> CreateToolMap(ITranslationHelper translation)
         {
             Dictionary<string, string> toolMap = new();
-            Tool[] tools = {
-                new Axe(),
-                new Hoe(),
-                new Pickaxe(),
-                new WateringCan(),
-                new FishingRod(),
-                new Pan(),
-                new Shears(),
-                new MilkPail(),
-                new Wand()
-            };
 
-            foreach (Tool tool in tools)
+            foreach (var (toolID, toolData) in Game1.toolData)
             {
-                string toolName = tool.ItemId.Equals("Pan") ? 
+                Tool tool = ItemRegistry.Create<Tool>(toolID);
+                string toolName = ("Pan").Equals(toolID) ? 
                     translation.Get("tool.pan").ToString().ToUpperInvariant()
                     : tool.DisplayName.ToUpperInvariant();
-                toolMap[toolName] = tool.QualifiedItemId;
+                string originalToolName = TokenParser.ParseText(toolData.DisplayName).ToUpperInvariant();
+                toolMap[toolName] = toolID;
+                if (!toolMap.ContainsKey(originalToolName) || Game1.toolData[toolMap[originalToolName]].UpgradeLevel > toolData.UpgradeLevel)
+                {
+                    toolMap[originalToolName] = toolID;
+                }
             }
 
             return toolMap;

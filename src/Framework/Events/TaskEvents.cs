@@ -4,6 +4,7 @@ using StardewValley.Buildings;
 using StardewValley.Menus;
 using DeluxeJournal.Events;
 using DeluxeJournal.Util;
+using DeluxeJournal.src.Events;
 
 namespace DeluxeJournal.Framework.Events
 {
@@ -37,6 +38,12 @@ namespace DeluxeJournal.Framework.Events
         {
             add => EventManager.SalableSold.Add(value);
             remove => EventManager.SalableSold.Remove(value);
+        }
+
+        public event EventHandler<ToolClaimedEventArgs> ToolClaimed
+        {
+            add => EventManager.ToolClaimed.Add(value);
+            remove => EventManager.ToolClaimed.Remove(value);
         }
 
         public event EventHandler<BuildingConstructedEventArgs> BuildingConstructed

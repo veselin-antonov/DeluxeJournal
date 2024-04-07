@@ -9,7 +9,6 @@ namespace DeluxeJournal.Tasks
     public class TaskParser
     {
         private readonly ITranslationHelper _translation;
-        private readonly LocalizedObjects _localizedObjects;
         private readonly IDictionary<string, HashSet<string>> _keywords;
         private string _id;
         private int _count;
@@ -45,7 +44,6 @@ namespace DeluxeJournal.Tasks
         public TaskParser(ITranslationHelper translation)
         {
             _translation = translation;
-            _localizedObjects = new LocalizedObjects(translation);
             _keywords = new Dictionary<string, HashSet<string>>();
             _id = TaskTypes.Basic;
 
@@ -122,15 +120,15 @@ namespace DeluxeJournal.Tasks
                     {
                         _count = count;
                     }
-                    else if (_localizedObjects.GetNPC(word) is NPC npc)
+                    else if (LocalizedObjects.Instance.GetNPC(word) is NPC npc)
                     {
                         _npc = npc;
                     }
-                    else if (_localizedObjects.GetBlueprintInfo(word) is BlueprintInfo blueprint)
+                    else if (LocalizedObjects.Instance.GetBlueprintInfo(word) is BlueprintInfo blueprint)
                     {
                         _blueprint = blueprint;
                     }
-                    else if (_localizedObjects.GetItem(word) is Item item)
+                    else if (LocalizedObjects.Instance.GetItem(word) is Item item)
                     {
                         _item = item;
                     }

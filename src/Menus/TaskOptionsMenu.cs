@@ -55,7 +55,7 @@ namespace DeluxeJournal.Menus
             _task = task;
             _selectedTaskID = task.ID;
             _taskFactory = TaskRegistry.CreateFactoryInstance(task.ID);
-            _taskFactory.Initialize(task, translation);
+            _taskFactory.Initialize(task, translation, true);
 
             _nameTextBox.Text = task.Name;
             _renewPeriodDropDown.selectedOption = (int)_task.RenewPeriod;

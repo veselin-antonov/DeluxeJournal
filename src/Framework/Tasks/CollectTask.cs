@@ -1,9 +1,9 @@
-﻿using StardewModdingAPI;
-using StardewValley;
-using StardewValley.Objects;
-using DeluxeJournal.Events;
+﻿using DeluxeJournal.Events;
 using DeluxeJournal.Tasks;
 using DeluxeJournal.Util;
+using StardewModdingAPI;
+using StardewValley;
+using StardewValley.Objects;
 
 namespace DeluxeJournal.Framework.Tasks
 {
@@ -44,7 +44,7 @@ namespace DeluxeJournal.Framework.Tasks
 
             public override void Initialize(ITask task, ITranslationHelper translation)
             {
-                Item = new LocalizedObjects(translation).GetItem(task.TargetDisplayName);
+                Item = LocalizedObjects.Instance.GetItem(task.TargetDisplayName);
                 Count = task.MaxCount;
             }
 

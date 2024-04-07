@@ -1,15 +1,10 @@
-﻿using StardewModdingAPI;
-using StardewModdingAPI.Events;
-using StardewValley;
-using StardewValley.Tools;
-using DeluxeJournal.Events;
+﻿using DeluxeJournal.Events;
+using DeluxeJournal.src.Events;
 using DeluxeJournal.Tasks;
 using DeluxeJournal.Util;
-using StardewValley.Internal;
-using StardewValley.GameData.Tools;
-using StardewValley.TokenizableStrings;
-using StardewValley.GameData.Shops;
-using StardewValley.Extensions;
+using StardewModdingAPI;
+using StardewModdingAPI.Events;
+using StardewValley;
 
 namespace DeluxeJournal.Framework.Tasks
 {
@@ -29,10 +24,10 @@ namespace DeluxeJournal.Framework.Tasks
 
                 set
                 {
-                     if (value is Tool tool && (tool is Axe || tool is Hoe || tool is WateringCan || tool is Pickaxe || tool is Pan))
+                    if (value is Tool tool)
                     {
-                        byte upgradeLevel = (byte)Math.Min(Tool.iridium, ToolHelper.GetToolUpgradeLevelForPlayer(tool.BaseName, Game1.player) + 1);
-                        _item = ToolHelper.GetToolFromDescription(tool.ItemId, upgradeLevel);
+                        byte upgradeLevel = (byte)Math.Min(Tool.iridium, ToolHelper.GetToolUpgradeLevelForPlayer(tool.BaseName, Game1.player));
+                        _item = ToolHelper.GetToolUpgrade(tool.ItemId, upgradeLevel);
                         
                     }
                     else
@@ -49,7 +44,19 @@ namespace DeluxeJournal.Framework.Tasks
 
             public override void Initialize(ITask task, ITranslationHelper translation)
             {
-                Item = new LocalizedObjects(translation).GetItem(task.TargetDisplayName);
+                Item = ItemRegistry.Create(task.TargetIndex);
+            }
+
+            public override void Initialize(ITask task, ITranslationHelper translation, bool copyTaskState)
+            {
+                if (copyTaskState)
+                {
+                    _item = ItemRegistry.Create(task.TargetIndex);
+                }
+                else
+                {
+                    Initialize(task, translation);
+                }
             }
 
             public override ITask? Create(string name)
@@ -72,6 +79,7 @@ namespace DeluxeJournal.Framework.Tasks
         {
             TargetDisplayName = tool.DisplayName;
             TargetName = tool.BaseName;
+            TargetIndex = tool.ItemId;
             Variant = tool.UpgradeLevel;
             MaxCount = 2;
 
@@ -110,19 +118,21 @@ namespace DeluxeJournal.Framework.Tasks
 
         public override int GetPrice()
         {
-            return Count > 0 ? 0 : ToolHelper.PriceForToolUpgradeLevel(Variant);
+            return Count > 0 ? 0 : Game1.toolData[TargetIndex].SalePrice;
         }
 
         public override void EventSubscribe(ITaskEvents events)
         {
             events.SalablePurchased += OnSalablePurchased;
             events.ModEvents.Player.InventoryChanged += OnInventoryChanged;
+            events.ToolClaimed += OnToolClaimed;
         }
 
         public override void EventUnsubscribe(ITaskEvents events)
         {
             events.SalablePurchased -= OnSalablePurchased;
             events.ModEvents.Player.InventoryChanged -= OnInventoryChanged;
+            events.ToolClaimed -= OnToolClaimed;
         }
 
         private void OnSalablePurchased(object? sender, SalablePurchasedEventArgs e)
@@ -148,6 +158,18 @@ namespace DeluxeJournal.Framework.Tasks
                         MarkAsCompleted();
                         break;
                     }
+                }
+            }
+        }
+
+        private void OnToolClaimed(object? sender, ToolClaimedEventArgs e)
+        {
+            if (CanUpdate() && IsTaskOwner(e.Player) && e.Player.toolBeingUpgraded.Value == null && Count == 1)
+            {
+                if (e.Tool is Tool tool && tool.BaseName == TargetName)
+                {
+                    Count = MaxCount;
+                    MarkAsCompleted();
                 }
             }
         }

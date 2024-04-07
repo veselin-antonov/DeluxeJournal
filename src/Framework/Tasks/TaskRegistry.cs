@@ -5,23 +5,15 @@ namespace DeluxeJournal.Framework.Tasks
 {
     internal class TaskRegistry
     {
-        private struct RegistryEntry
+        private struct RegistryEntry(Type taskType, Type factoryType, TaskIcon icon, int priority)
         {
-            public Type TaskType { get; }
+            public Type TaskType { get; } = taskType;
 
-            public Type FactoryType { get; }
+            public Type FactoryType { get; } = factoryType;
 
-            public TaskIcon Icon { get; }
+            public TaskIcon Icon { get; } = icon;
 
-            public int Priority { get; }
-
-            public RegistryEntry(Type taskType, Type factoryType, TaskIcon icon, int priority)
-            {
-                TaskType = taskType;
-                FactoryType = factoryType;
-                Icon = icon;
-                Priority = priority;
-            }
+            public int Priority { get; } = priority;
         }
 
         private static readonly IDictionary<string, RegistryEntry> Registry = new Dictionary<string, RegistryEntry>();

@@ -40,7 +40,7 @@ namespace DeluxeJournal.Patching
         {
             harmony.Patch(
                 original: AccessTools.Method(typeof(QuestLog), nameof(QuestLog.draw), new[] { typeof(SpriteBatch) }),
-                prefix: new HarmonyMethod(typeof(QuestLogPatch), nameof(QuestLogPatch.Prefix_draw))
+                prefix: new HarmonyMethod(typeof(QuestLogPatch), nameof(Prefix_draw))
             );
         }
     }

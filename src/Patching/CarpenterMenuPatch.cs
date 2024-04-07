@@ -1,10 +1,10 @@
-﻿using HarmonyLib;
+﻿using DeluxeJournal.Events;
+using DeluxeJournal.Framework.Events;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Buildings;
 using StardewValley.Menus;
-using DeluxeJournal.Events;
-using DeluxeJournal.Framework.Events;
 
 namespace DeluxeJournal.Patching
 {

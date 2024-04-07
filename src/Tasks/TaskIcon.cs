@@ -4,19 +4,13 @@ using StardewValley;
 
 namespace DeluxeJournal.Tasks
 {
-    public class TaskIcon
+    public class TaskIcon(Texture2D? texture, Rectangle sourceRect)
     {
         /// <summary>A custom icon texture, or null if using the default.</summary>
-        public Texture2D? CustomIconTexture { get; set; }
+        public Texture2D? CustomIconTexture { get; set; } = texture;
 
         /// <summary>The icon source rect for the given texture.</summary>
-        public Rectangle SourceRect { get; set; }
-
-        public TaskIcon(Texture2D? texture, Rectangle sourceRect)
-        {
-            CustomIconTexture = texture;
-            SourceRect = sourceRect;
-        }
+        public Rectangle SourceRect { get; set; } = sourceRect;
 
         public void DrawIcon(SpriteBatch b, Rectangle bounds, Color color, float scale = 4f, bool drawShadow = false)
         {

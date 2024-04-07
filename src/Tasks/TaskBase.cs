@@ -148,7 +148,7 @@ namespace DeluxeJournal.Tasks
             return RenewPeriod switch
             {
                 Period.Weekly => (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,
-                Period.BiWeekly => IsFirstWeeklyRenewal ? 1 : (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,
+                Period.BiWeekly => IsFirstWeeklyRenewal ? 0 : (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 7) + 7) % 7,
                 Period.Monthly => (((RenewDate.DayOfMonth - Game1.dayOfMonth) % 28) + 28) % 28,
                 Period.Annually => (((TotalDaysInYear(RenewDate) - TotalDaysInYear(Game1.Date)) % 112) + 112) % 112,
                 _ => 0,

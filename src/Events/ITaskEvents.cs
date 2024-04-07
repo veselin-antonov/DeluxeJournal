@@ -1,4 +1,5 @@
-﻿using StardewModdingAPI.Events;
+﻿using DeluxeJournal.src.Events;
+using StardewModdingAPI.Events;
 
 namespace DeluxeJournal.Events
 {
@@ -23,6 +24,8 @@ namespace DeluxeJournal.Events
         /// <summary>A Building has been constructed. Fires for both new and upgraded buildings.</summary>
         /// <remarks>Upgrades are currently only detected via a CarpenterMenu (i.e. Robin or the Wizard).</remarks>
         event EventHandler<BuildingConstructedEventArgs> BuildingConstructed;
+
+        event EventHandler<ToolClaimedEventArgs> ToolClaimed;
 
         /// <summary>SMAPI mod events bus.</summary>
         IModEvents ModEvents { get; }

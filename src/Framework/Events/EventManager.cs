@@ -1,7 +1,8 @@
-﻿using System.Reflection;
+﻿using DeluxeJournal.Events;
+using DeluxeJournal.src.Events;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
-using DeluxeJournal.Events;
+using System.Reflection;
 
 namespace DeluxeJournal.Framework.Events
 {
@@ -16,6 +17,8 @@ namespace DeluxeJournal.Framework.Events
         public ManagedEvent<SalablePurchasedEventArgs> SalablePurchased { get; }
 
         public ManagedEvent<SalableSoldEventArgs> SalableSold { get; }
+
+        public ManagedEvent<ToolClaimedEventArgs> ToolClaimed { get; }
 
         public BuildingConstructedEvent BuildingConstructed { get; }
 
@@ -33,6 +36,7 @@ namespace DeluxeJournal.Framework.Events
             ItemGifted = new ManagedEvent<GiftEventArgs>(nameof(ItemGifted));
             SalablePurchased = new ManagedEvent<SalablePurchasedEventArgs>(nameof(SalablePurchased));
             SalableSold = new ManagedEvent<SalableSoldEventArgs>(nameof(SalableSold));
+            ToolClaimed = new ManagedEvent<ToolClaimedEventArgs>(nameof(ToolClaimed));
             BuildingConstructed = new BuildingConstructedEvent(nameof(BuildingConstructed), multiplayer);
         }
 

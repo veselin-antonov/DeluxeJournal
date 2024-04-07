@@ -28,8 +28,8 @@ namespace DeluxeJournal.Framework.Tasks
 
             public override void Initialize(ITask task, ITranslationHelper translation)
             {
-                NPC = new LocalizedObjects(translation).GetNPC(task.TargetDisplayName);
-                Item = ItemRegistry.Create(task.TargetIndex);
+                NPC = LocalizedObjects.Instance.GetNPC(task.TargetDisplayName);
+                Item = (task.TargetIndex == null) ? null : ItemRegistry.Create(task.TargetIndex);
             }
 
             public override ITask? Create(string name)

@@ -13,6 +13,11 @@ namespace DeluxeJournal.Tasks
         /// <param name="translation">Translation helper.</param>
         public abstract void Initialize(ITask task, ITranslationHelper translation);
 
+        public virtual void Initialize(ITask task, ITranslationHelper translation, bool recalculateCustomLogic)
+        {
+            Initialize(task, translation);
+        }
+
         /// <summary>Create a new ITask instance.</summary>
         /// <param name="name">The name of the new task.</param>
         public abstract ITask? Create(string name);

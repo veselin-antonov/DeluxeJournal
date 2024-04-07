@@ -55,7 +55,7 @@ namespace DeluxeJournal.Framework.Events
             Multiplayer.SendMessage(
                 EventArgsToMessage(args),
                 EventName,
-                modIDs: new[] { DeluxeJournalMod.Instance?.ModManifest.UniqueID }
+                modIDs: [DeluxeJournalMod.Instance!.ModManifest.UniqueID]
             );
 
             // Messages are not sent back to the mod that sent them, so raise this event locally

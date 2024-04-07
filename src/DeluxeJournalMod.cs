@@ -16,6 +16,8 @@ using DeluxeJournal.Patching;
 using Newtonsoft.Json.Linq;
 /*using SpaceCore.Events;*/
 using DeluxeJournal.Events;
+using DeluxeJournal.Util;
+using DeluxeJournal.src.Patching;
 
 namespace DeluxeJournal
 {
@@ -67,17 +69,17 @@ namespace DeluxeJournal
             helper.Events.Display.MenuChanged += OnMenuChanged;
             helper.Events.GameLoop.SaveLoaded += OnSaveLoaded;
             helper.Events.GameLoop.Saving += OnSaving;
-            helper.Events.Player.InventoryChanged += OnInventoryChanged;
 
             /*SpaceEvents.BeforeGiftGiven += FarmerPatch.OnBouquetGiven;*/
 
             Patcher.Apply(new Harmony(ModManifest.UniqueID), Monitor,
                 new FarmerPatch(EventManager, Monitor),
                 new CarpenterMenuPatch(EventManager, Monitor),
-                new QuestLogPatch(Monitor)
+                new QuestLogPatch(Monitor),
+                new ToolPatch(EventManager, Monitor)
             );
 
-            
+            Program.enableCheats = true;
         }
 
         private void LoadCharacterIcons()
@@ -216,6 +218,11 @@ namespace DeluxeJournal
                 Game1.onScreenMenus.Add(new JournalButton(Helper.Translation));
             }
 
+            if (!LocalizedObjects.IsInitialized())
+            {
+                LocalizedObjects.OneTimeInit(Helper.Translation);
+            }
+
             LoadCharacterIcons();
         }
 
@@ -230,13 +237,21 @@ namespace DeluxeJournal
             {
                 TaskManager?.Save();
             }
+
+            if (!LocalizedObjects.IsInitialized())
+            {
+                LocalizedObjects.OneTimeInit(Helper.Translation);
+            }
         }
 
         private void OnInventoryChanged(object? sender, InventoryChangedEventArgs e)
         {
-            if (e.Added is SObject obj && !obj.HasBeenInInventory)
+            foreach (Item item in e.Added)
             {
-                EventManager!.ItemCollected.Raise(null, new ItemReceivedEventArgs(e.Player, obj, obj.Stack));
+                if (item is SObject obj && !obj.HasBeenInInventory)
+                {
+                    EventManager!.ItemCollected.Raise(null, new ItemReceivedEventArgs(e.Player, obj, obj.Stack));
+                }
             }
         }
         /*private void OnBouquetGiven(object? sender, EventArgsBeforeReceiveObject args)

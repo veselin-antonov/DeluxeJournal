@@ -1,9 +1,9 @@
-﻿using HarmonyLib;
+﻿using DeluxeJournal.Events;
+using DeluxeJournal.Framework.Events;
+using HarmonyLib;
 using StardewModdingAPI;
 using StardewValley;
 using StardewValley.Quests;
-using DeluxeJournal.Events;
-using DeluxeJournal.Framework.Events;
 
 namespace DeluxeJournal.Patching
 {
@@ -45,6 +45,21 @@ namespace DeluxeJournal.Patching
             }
         }
 
+        private static void Prefix_addItemToInventoryBool(Item item)
+        {
+            try
+            {
+                if (item is SObject obj && !obj.HasBeenInInventory)
+                {
+                    Instance.EventManager.ItemCollected.Raise(null, new ItemReceivedEventArgs(Game1.player, obj, obj.Stack));
+                }
+            }
+            catch (Exception ex)
+            {
+                Instance.LogError(ex, nameof(Prefix_addItemToInventoryBool));
+            }
+        }
+
         public override void Apply(Harmony harmony)
         {
             harmony.Patch(
@@ -55,6 +70,11 @@ namespace DeluxeJournal.Patching
             harmony.Patch(
                 original: AccessTools.Method(typeof(Farmer), nameof(Farmer.checkForQuestComplete)),
                 postfix: new HarmonyMethod(typeof(FarmerPatch), nameof(Postfix_checkForQuestComplete))
+            );
+
+            harmony.Patch(
+                original: AccessTools.Method(typeof(Farmer), nameof(Farmer.addItemToInventoryBool)),
+                prefix: new HarmonyMethod(typeof(FarmerPatch), nameof(Prefix_addItemToInventoryBool))
             );
         }
     }
